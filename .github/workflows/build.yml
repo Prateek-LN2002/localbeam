@@ -1,0 +1,124 @@
+# Builds and tests LocalBeam on real Windows, macOS and Linux machines in the cloud.
+# Runs on every push, and on demand from the Actions tab ("Run workflow").
+name: Build and test
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  # The engine test suite (pairing, HTTPS, resumable transfers, restart) on all three desktop systems.
+  engine-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  windows-app:
+    needs: engine-tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx electron-builder --win --x64 --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LocalBeam-Windows
+          path: dist/*.exe
+
+  mac-app:
+    needs: engine-tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Unsigned build: without an Apple Developer certificate, macOS asks the user to confirm on first open.
+      - run: npx electron-builder --mac --universal --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      # Start the built app, wait for its engine, and check it answers.
+      - name: Smoke-test the built Mac app
+        run: |
+          APP=$(find dist -maxdepth 2 -name "LocalBeam.app" | head -n 1)
+          "$APP/Contents/MacOS/LocalBeam" --user-data-dir="$RUNNER_TEMP/lb-data" &
+          for i in $(seq 1 40); do
+            if curl -sk --max-time 2 https://127.0.0.1:53700/ | grep -q "Pair this device"; then echo "Mac app engine is serving"; exit 0; fi
+            sleep 1
+          done
+          echo "The Mac app did not start its engine"; exit 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LocalBeam-macOS
+          path: dist/*.dmg
+
+  linux-app:
+    needs: engine-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx electron-builder --linux --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LocalBeam-Linux
+          path: dist/*.AppImage
+
+  android-app:
+    needs: engine-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      # No signing key in the cloud: this APK is for testing. Release APKs are built locally with the project key.
+      - run: gradle -p android assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LocalBeam-Android-debug
+          path: android/app/build/outputs/apk/debug/*.apk
+
+  # Compiles the iPhone app for the simulator. Installing on a real iPhone needs an Apple Developer account.
+  ios-app:
+    needs: engine-tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen
+      - run: xcodegen generate
+        working-directory: ios
+      - name: Build for the iPhone simulator
+        run: |
+          xcodebuild -project ios/LocalBeam.xcodeproj -scheme LocalBeam \
+            -sdk iphonesimulator -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LocalBeam-iOS-simulator
+          path: build/ios/Build/Products/Debug-iphonesimulator/LocalBeam.app

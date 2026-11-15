@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LocalBeam</title>
+<link rel="icon" href="/icon.png">
+<link rel="stylesheet" href="/desktop.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand"><img src="/icon.png" alt="">LocalBeam</div>
+    <nav id="nav">
+      <a href="#home" data-view="home">Home</a>
+      <a href="#transfer" data-view="transfer">Transfer<span class="badge" id="navTransferBadge" hidden></span></a>
+      <a href="#received" data-view="received">Received<span class="badge" id="navReceivedBadge" hidden></span></a>
+      <a href="#settings" data-view="settings">Settings</a>
+    </nav>
+    <div class="side-foot" id="sideFoot"></div>
+  </aside>
+
+  <main>
+    <div class="topline"><span class="pill" id="pill">Encrypted · Same Wi-Fi only</span></div>
+
+    <!-- Home -->
+    <section class="view" id="view-home">
+      <h1>Home</h1>
+      <p class="sub">Pair your devices securely and start sharing.</p>
+      <div class="grid-2">
+        <div class="card">
+          <h2>Pair a device</h2>
+          <p class="muted">Scan with your phone camera to pair.</p>
+          <div class="qr"><img id="qr" alt="Pairing QR code"></div>
+          <label class="field" id="addrWrap" hidden>Network
+            <select id="addr"></select>
+          </label>
+          <p class="manual">No camera? On the other device, open <b id="manualUrl">…</b> and enter the code <b class="code" id="pairCode">······</b></p>
+          <p class="hint">The first time, the device warns that the connection is not private. That is expected:
+            this computer makes its own certificate. Choose <b>Show Details → visit this website</b> (iPhone)
+            or <b>Advanced → Proceed</b> (Android, computers).</p>
+        </div>
+        <div class="card">
+          <h2>Paired devices</h2>
+          <ul class="devices" id="devices"></ul>
+          <p class="empty" id="devicesEmpty">No devices yet. Scan the code to pair your first one.</p>
+        </div>
+      </div>
+      <p class="no-net" id="noNet" hidden>This computer is not connected to a network, so devices cannot reach it.</p>
+    </section>
+
+    <!-- Transfer -->
+    <section class="view" id="view-transfer" hidden>
+      <h1>Transfer files and text</h1>
+      <p class="sub">Send securely to your devices on the same Wi-Fi.</p>
+      <div class="card">
+        <div class="drop" id="drop" role="button" tabindex="0">
+          <strong>Drop files here or click to choose</strong>
+          <span>no size limit</span>
+        </div>
+        <input type="file" id="filePick" multiple hidden>
+        <p class="status" id="dropStatus"></p>
+        <h3>Send text</h3>
+        <div class="textrow">
+          <textarea id="outText" placeholder="Type or paste text or a link"></textarea>
+          <button class="btn" id="outSend">Send text</button>
+        </div>
+      </div>
+
+      <div class="card" id="readyCard" hidden>
+        <h3>Ready for your devices</h3>
+        <ul class="rows" id="ready"></ul>
+        <p class="muted small">Paired devices see these under “From computer”. Removing one here does not delete your file.</p>
+      </div>
+
+      <div class="card">
+        <h3>In progress</h3>
+        <ul class="rows" id="progress"></ul>
+        <p class="empty" id="progressEmpty">Nothing is transferring right now.</p>
+      </div>
+    </section>
+
+    <!-- Received -->
+    <section class="view" id="view-received" hidden>
+      <h1>Received</h1>
+      <p class="sub">Files and links sent from your devices.</p>
+      <div class="card table-card">
+        <table>
+          <thead><tr><th>Name</th><th>Size</th><th>From</th><th>Time</th><th></th></tr></thead>
+          <tbody id="received"></tbody>
+        </table>
+        <p class="empty" id="receivedEmpty">Nothing received yet.</p>
+      </div>
+      <div class="actions">
+        <button class="btn" id="openFolder">Open folder</button>
+        <button class="btn ghost" id="clearHistory">Clear list</button>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section class="view" id="view-settings" hidden>
+      <h1>Settings</h1>
+      <p class="sub">Control how LocalBeam works on this computer.</p>
+
+      <div class="card setting">
+        <div class="grow">
+          <h3>Device name</h3>
+          <input type="text" id="deviceName" maxlength="40" spellcheck="false">
+        </div>
+        <button class="link" id="saveName" hidden>Save</button>
+      </div>
+
+      <div class="card setting">
+        <div class="grow">
+          <h3>Save received files to</h3>
+          <p class="path" id="saveDir"></p>
+          <div class="textrow" id="saveDirEdit" hidden>
+            <input type="text" id="saveDirInput" spellcheck="false" placeholder="Full path of a folder">
+            <button class="btn" id="saveDirOk">Use folder</button>
+          </div>
+        </div>
+        <button class="link" id="changeDir">Change</button>
+      </div>
+
+      <div class="card">
+        <h3>Security</h3>
+        <p class="good">Encryption On</p>
+        <p class="muted">Only paired devices can connect.</p>
+        <p class="muted small">Certificate fingerprint (SHA-256): <span class="mono" id="fingerprint"></span></p>
+        <ul class="devices slim" id="settingsDevices"></ul>
+      </div>
+
+      <div class="card setting">
+        <div class="grow">
+          <h3>Start LocalBeam when the computer starts</h3>
+          <p class="muted small" id="autoNote" hidden>Available in the installed app.</p>
+        </div>
+        <label class="switch"><input type="checkbox" id="autoStart"><span></span></label>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+<script src="/desktop.js"></script>
+</body>
+</html>

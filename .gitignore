@@ -1,0 +1,14 @@
+node_modules/
+dist/
+
+# Android build output and private signing key
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/keystore.properties
+android/*.jks
+release/
+
+# Editor and assistant settings
+.claude/

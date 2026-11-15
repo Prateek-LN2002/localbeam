@@ -1,0 +1,4 @@
+Third-party code in this folder
+
+peerjs.min.js: PeerJS 1.5.5, MIT licence, https://github.com/peers/peerjs
+qrcode.js: node-qrcode 1.5.4, MIT licence, https://github.com/soldair/node-qrcode

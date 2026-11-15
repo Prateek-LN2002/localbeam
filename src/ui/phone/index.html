@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F4F5F7">
+<title>LocalBeam</title>
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<link rel="manifest" id="manifest" href="/manifest.webmanifest">
+<link rel="stylesheet" href="/phone.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <span class="brand">LocalBeam</span>
+    <span class="pill">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1zm2 0h6V7a3 3 0 0 0-6 0v3z"/></svg>
+      Encrypted
+    </span>
+  </div>
+  <div class="conn" id="conn">Connecting…</div>
+</header>
+
+<main>
+  <!-- Send -->
+  <section id="tab-send">
+    <label class="choose" for="file">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4.6a2 2 0 0 1 1.4.6L12.4 7H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      Choose files
+    </label>
+    <input id="file" type="file" multiple>
+    <p class="note">Photos, videos, any file — no size limit</p>
+
+    <div class="card">
+      <h2>Send a link or text</h2>
+      <textarea id="msg" placeholder="Paste a link or type a note"></textarea>
+      <button class="btn" id="sendMsg" type="button">Send text</button>
+      <div class="msgstate" id="msgState"></div>
+    </div>
+
+    <div class="card help" id="homeHelp" hidden>
+      <button class="x" id="homeHelpClose" type="button" aria-label="Hide this tip">×</button>
+      <h3>Keep LocalBeam on your Home Screen</h3>
+      <p>Tap the <b>Share</b> button, then <b>Add to Home Screen</b>. If you see <b>Open as Web App</b>, switch it off so it opens here in the browser.</p>
+    </div>
+  </section>
+
+  <!-- From computer -->
+  <section id="tab-inbox" hidden>
+    <h1>From computer</h1>
+    <ul class="list" id="inbox"></ul>
+    <p class="empty" id="inboxEmpty">Nothing waiting. Files and text sent from the computer show up here.</p>
+    <p class="tip" id="inboxTip" hidden>Photos: tap <b>View</b>, then press and hold the picture and choose <b>Save to Photos</b>. Downloads are saved in the Files app.</p>
+  </section>
+
+  <!-- Progress -->
+  <section id="tab-progress" hidden>
+    <h1>Progress</h1>
+    <ul class="list" id="uploads"></ul>
+    <p class="empty" id="uploadsEmpty">Nothing sent yet. Files you send show their progress here.</p>
+    <p class="keep" id="keep" hidden>Keep this page open until transfers finish</p>
+  </section>
+</main>
+
+<nav class="tabs" id="tabs">
+  <button type="button" data-tab="send" class="on">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 3 3 10.5l7 2.5 2.5 7L21 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    <span>Send</span>
+  </button>
+  <button type="button" data-tab="inbox">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <span>From computer</span><i class="dot" id="inboxDot" hidden></i>
+  </button>
+  <button type="button" data-tab="progress">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <span>Progress</span><i class="dot" id="progressDot" hidden></i>
+  </button>
+</nav>
+
+<div class="overlay" id="unpaired" hidden>
+  <div class="card">
+    <h2>This device is not paired</h2>
+    <p>It was removed on the computer, or the pairing has expired.</p>
+    <a class="btn" href="/">Pair again</a>
+  </div>
+</div>
+<script src="/phone.js"></script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Send to Laptop</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --card: #ffffff; --text: #16181d; --muted: #616772; --line: #e3e5ea;
+    --accent: #2563eb; --accent-text: #ffffff; --track: #e6e8ee; --ok: #15803d; --err: #b91c1c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1115; --card: #171a21; --text: #eceef2; --muted: #9aa1ad; --line: #2a2f39;
+      --accent: #4f83ff; --accent-text: #ffffff; --track: #262b35; --ok: #4ade80; --err: #f87171;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.45 -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 520px; margin: 0 auto; padding: 28px 16px calc(28px + env(safe-area-inset-bottom)); }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  p.sub { margin: 0 0 22px; color: var(--muted); }
+  .pick { display: block; text-align: center; background: var(--accent); color: var(--accent-text);
+          font-size: 18px; font-weight: 600; padding: 18px; border-radius: 14px; cursor: pointer; }
+  .pick:active { opacity: .85; }
+  input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .hint { color: var(--muted); font-size: 14px; margin: 10px 2px 22px; }
+  .summary { font-weight: 600; margin: 0 2px 10px; min-height: 1.4em; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  li { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .top { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; }
+  .name { overflow-wrap: anywhere; }
+  .state { color: var(--muted); white-space: nowrap; font-size: 14px; }
+  .state.ok { color: var(--ok); font-weight: 600; }
+  .state.err { color: var(--err); font-weight: 600; }
+  .bar { height: 6px; background: var(--track); border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s; }
+  li.done .bar i { background: var(--ok); }
+  li.failed .bar i { background: var(--err); }
+  .textbox { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 22px; }
+  .textbox h2 { font-size: 17px; margin: 0 0 2px; }
+  .textbox p { margin: 0 0 10px; color: var(--muted); font-size: 14px; }
+  textarea { width: 100%; min-height: 84px; resize: vertical; padding: 10px 12px; border-radius: 10px;
+             border: 1px solid var(--line); background: var(--bg); color: var(--text);
+             font: 16px/1.4 -apple-system, system-ui, sans-serif; } /* 16px stops iOS zooming in */
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .send-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .btn2 { font: 600 16px/1 -apple-system, system-ui, sans-serif; color: var(--accent-text); background: var(--accent);
+          border: 0; border-radius: 10px; padding: 12px 20px; cursor: pointer; }
+  .btn2:disabled { opacity: .5; }
+  .msgstate { font-size: 14px; color: var(--muted); }
+  .msgstate.ok { color: var(--ok); font-weight: 600; }
+  .msgstate.err { color: var(--err); font-weight: 600; }
+  [hidden] { display: none !important; }
+  .inbox { border-color: var(--accent); }
+  .inlist { list-style: none; margin: 0; padding: 0; display: block; }
+  .inlist li { background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 12px 0; }
+  .inlist li:first-child { border-top: 0; padding-top: 4px; }
+  .in-text { white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; -webkit-user-select: text; }
+  .in-text a { color: var(--accent); }
+  .in-name { overflow-wrap: anywhere; }
+  .in-meta { color: var(--muted); font-size: 14px; }
+  .in-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .btn3 { display: inline-block; font: 600 15px/1 -apple-system, system-ui, sans-serif; text-decoration: none;
+          color: var(--accent); border: 1px solid var(--accent); border-radius: 9px; padding: 9px 14px;
+          background: none; cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Send to laptop</h1>
+  <p class="sub">Files go straight to the laptop over your Wi-Fi.</p>
+
+  <label class="pick" for="file">Choose files</label>
+  <input id="file" type="file" multiple>
+  <div class="hint">Pick from Photos, Files, or take a new photo. Keep this page open until every file says “Sent”.</div>
+
+  <section class="textbox inbox" id="inbox" hidden>
+    <h2>From laptop</h2>
+    <p>Photos: tap <b>View</b>, then press and hold the picture → <b>Save to Photos</b>.
+       Other files: <b>Download</b> saves them to Files → Downloads.</p>
+    <ul class="inlist" id="inList"></ul>
+  </section>
+
+  <section class="textbox">
+    <h2>Send a link or text</h2>
+    <p>For an app: open it in the App Store, tap <b>Share → Copy</b>, then paste here.</p>
+    <textarea id="msg" placeholder="Paste a link or type a note"></textarea>
+    <div class="send-row">
+      <button class="btn2" id="sendMsg" type="button">Send text</button>
+      <span class="msgstate" id="msgState"></span>
+    </div>
+  </section>
+
+  <div class="summary" id="summary"></div>
+  <ul id="list"></ul>
+</main>
+
+<script>
+  var token = new URLSearchParams(location.search).get('k');
+  var queue = [], busy = false, sent = 0, failed = 0, total = 0;
+
+  function fmtSize(b) {
+    var u = ['B', 'KB', 'MB', 'GB'], i = 0;
+    while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; }
+    return (i ? b.toFixed(1) : b) + ' ' + u[i];
+  }
+
+  function updateSummary() {
+    var s = document.getElementById('summary');
+    if (!total) { s.textContent = ''; return; }
+    var left = total - sent - failed;
+    s.textContent = left ? 'Sending… ' + sent + ' of ' + total + ' done'
+                         : (failed ? sent + ' sent, ' + failed + ' failed' : 'All ' + sent + ' sent ✓');
+  }
+
+  function addItem(file) {
+    var li = document.createElement('li');
+    li.innerHTML = '<div class="top"><span class="name"></span><span class="state">Waiting</span></div><div class="bar"><i></i></div>';
+    li.querySelector('.name').textContent = file.name;
+    document.getElementById('list').prepend(li);
+    return li;
+  }
+
+  function next() {
+    if (busy || !queue.length) return;
+    busy = true;
+    var job = queue.shift(), li = job.li, state = li.querySelector('.state'), bar = li.querySelector('.bar i');
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/upload?k=' + encodeURIComponent(token));
+    xhr.setRequestHeader('X-Filename', encodeURIComponent(job.file.name));
+    xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+    xhr.upload.onprogress = function (e) {
+      if (!e.lengthComputable) return;
+      var pct = Math.round(e.loaded / e.total * 100);
+      bar.style.width = pct + '%';
+      state.textContent = pct + '% of ' + fmtSize(e.total);
+    };
+    function finish(ok, msg) {
+      li.className = ok ? 'done' : 'failed';
+      state.className = 'state ' + (ok ? 'ok' : 'err');
+      state.textContent = msg;
+      bar.style.width = '100%';
+      if (ok) sent++; else failed++;
+      busy = false; updateSummary(); next();
+    }
+    xhr.onload = function () {
+      if (xhr.status === 200) finish(true, 'Sent');
+      else finish(false, xhr.status === 403 ? 'Link expired — rescan' : 'Failed');
+    };
+    xhr.onerror = function () { finish(false, 'Failed — check Wi-Fi'); };
+    state.textContent = 'Starting…';
+    xhr.send(job.file);
+  }
+
+  document.getElementById('file').addEventListener('change', function (e) {
+    Array.prototype.forEach.call(e.target.files, function (f) {
+      queue.push({ file: f, li: addItem(f) });
+      total++;
+    });
+    e.target.value = '';
+    updateSummary();
+    next();
+  });
+
+  var msgBox = document.getElementById('msg'), msgBtn = document.getElementById('sendMsg'),
+      msgState = document.getElementById('msgState');
+  msgBox.addEventListener('input', function () { msgState.textContent = ''; msgState.className = 'msgstate'; });
+  msgBtn.addEventListener('click', async function () {
+    var text = msgBox.value.trim();
+    if (!text) { msgState.className = 'msgstate err'; msgState.textContent = 'Type or paste something first'; return; }
+    msgBtn.disabled = true;
+    msgState.className = 'msgstate'; msgState.textContent = 'Sending…';
+    try {
+      var r = await fetch('/text?k=' + encodeURIComponent(token), {
+        method: 'POST', headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body: text
+      });
+      if (r.ok) { msgBox.value = ''; msgState.className = 'msgstate ok'; msgState.textContent = 'Sent ✓'; }
+      else { msgState.className = 'msgstate err'; msgState.textContent = r.status === 403 ? 'Link expired — rescan' : 'Failed'; }
+    } catch (err) {
+      msgState.className = 'msgstate err'; msgState.textContent = 'Failed — check Wi-Fi';
+    }
+    msgBtn.disabled = false;
+  });
+
+  // ---- From laptop ----
+  var IMAGE = /\.(jpe?g|png|gif|webp|heic)$/i;
+
+  function linkify(el, text) {
+    var re = /https?:\/\/[^\s<>"']+/g, last = 0, m;
+    while ((m = re.exec(text))) {
+      var url = m[0].replace(/[.,;:!?)\]]+$/, '');
+      el.appendChild(document.createTextNode(text.slice(last, m.index)));
+      var a = document.createElement('a');
+      a.href = url; a.textContent = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      el.appendChild(a);
+      last = m.index + url.length;
+      re.lastIndex = last;
+    }
+    el.appendChild(document.createTextNode(text.slice(last)));
+  }
+
+  // The page is plain http on the local network, where iOS blocks the modern clipboard API; fall back to execCommand.
+  function copyText(text, btn) {
+    function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }
+    if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(done); return; }
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
+    document.body.appendChild(ta);
+    ta.focus(); ta.setSelectionRange(0, text.length);
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    if (ok) done(); else btn.textContent = 'Hold the text to copy';
+  }
+
+  function actionLink(label, href, download) {
+    var a = document.createElement('a');
+    a.className = 'btn3'; a.textContent = label; a.href = href;
+    if (download) a.setAttribute('download', '');
+    else a.target = '_blank';
+    return a;
+  }
+
+  var inShown = '';
+  async function refreshInbox() {
+    try {
+      var r = await fetch('/inbox?k=' + encodeURIComponent(token));
+      if (!r.ok) return;
+      var data = await r.json(), key = JSON.stringify(data);
+      if (key === inShown) return; // unchanged: keep any text selection intact
+      inShown = key;
+      var box = document.getElementById('inbox'), ul = document.getElementById('inList');
+      box.hidden = !data.notes.length && !data.files.length;
+      ul.innerHTML = '';
+      data.notes.forEach(function (n) {
+        var li = document.createElement('li');
+        var t = document.createElement('div'); t.className = 'in-text'; linkify(t, n.text);
+        var act = document.createElement('div'); act.className = 'in-actions';
+        var b = document.createElement('button'); b.className = 'btn3'; b.type = 'button'; b.textContent = 'Copy';
+        b.onclick = function () { copyText(n.text, b); };
+        act.appendChild(b);
+        li.appendChild(t); li.appendChild(act); ul.appendChild(li);
+      });
+      data.files.forEach(function (f) {
+        var li = document.createElement('li');
+        var name = document.createElement('div'); name.className = 'in-name'; name.textContent = f.name;
+        var meta = document.createElement('div'); meta.className = 'in-meta'; meta.textContent = fmtSize(f.size);
+        var href = '/download/' + encodeURIComponent(f.name) + '?k=' + encodeURIComponent(token);
+        var act = document.createElement('div'); act.className = 'in-actions';
+        if (IMAGE.test(f.name)) act.appendChild(actionLink('View', href + '&view=1', false));
+        act.appendChild(actionLink('Download', href, true));
+        li.appendChild(name); li.appendChild(meta); li.appendChild(act); ul.appendChild(li);
+      });
+    } catch (e) { /* laptop not reachable right now */ }
+  }
+  refreshInbox();
+  setInterval(refreshInbox, 3000);
+</script>
+</body>
+</html>

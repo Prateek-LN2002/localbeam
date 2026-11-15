@@ -1,0 +1,68 @@
+{
+  "name": "localbeam",
+  "productName": "LocalBeam",
+  "version": "1.1.0",
+  "description": "Send files and text between your devices on the same Wi-Fi, encrypted, with no size limit.",
+  "main": "electron/main.js",
+  "author": "LocalBeam",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "engine": "node src/standalone.js",
+    "test": "node tests/engine.test.js",
+    "web": "node scripts/serve-web.js",
+    "web:build": "node scripts/build-web.js",
+    "icons": "node scripts/gen-icons.js",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "app.localbeam.desktop",
+    "productName": "LocalBeam",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "artifactName": "LocalBeam-Setup-${version}.exe"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.utilities"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Utility"
+    }
+  },
+  "dependencies": {
+    "node-forge": "^1.4.3",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "electron": "^45.3.2",
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.28.2",
+    "peerjs": "^1.5.5"
+  }
+}

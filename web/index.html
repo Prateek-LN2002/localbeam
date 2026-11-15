@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F4F5F7">
+<meta name="description" content="LocalBeam sends files and text straight between your own devices, encrypted, with nothing to install.">
+<title>LocalBeam</title>
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img src="icon-192.png" alt="">LocalBeam</div>
+  <span class="pill" id="pill">Starting…</span>
+</header>
+
+<main>
+  <div class="banner" id="banner" hidden></div>
+
+  <section class="card">
+    <div class="row">
+      <h2>Your devices</h2>
+      <button class="link" id="addBtn" type="button">Add a device</button>
+    </div>
+    <ul class="devices" id="devices"></ul>
+    <p class="empty" id="noDevices">No devices paired yet. Pair one below.</p>
+    <label class="namefield">This device is called
+      <input id="myName" type="text" maxlength="40" spellcheck="false" autocomplete="off">
+    </label>
+  </section>
+
+  <section class="card" id="pairCard" hidden>
+    <div class="row">
+      <h2>Pair a device</h2>
+      <button class="link" id="closePair" type="button">Close</button>
+    </div>
+    <p class="muted">Scan this code with the other device's camera. It opens LocalBeam there and pairs the two.</p>
+    <div class="qr" id="qr"></div>
+    <div class="linkrow">
+      <input id="pairLink" type="text" readonly aria-label="Pairing link">
+      <button class="btn2" id="copyLink" type="button">Copy link</button>
+    </div>
+    <p class="muted small" id="pairExpiry"></p>
+    <p class="muted or">No camera on the other device? Copy the link above, open it there, or paste a link from that device here:</p>
+    <div class="linkrow">
+      <input id="pasteLink" type="text" placeholder="Paste a pairing link" autocomplete="off" spellcheck="false">
+      <button class="btn2" id="useLink" type="button">Pair</button>
+    </div>
+    <p class="status" id="pairStatus"></p>
+  </section>
+
+  <section class="card" id="sendCard">
+    <div class="row">
+      <h2 id="sendTitle">Send</h2>
+      <select id="target" hidden aria-label="Send to"></select>
+    </div>
+    <div class="drop" id="drop" role="button" tabindex="0">
+      <strong>Choose files</strong>
+      <span>or drop them here · no size limit</span>
+    </div>
+    <input type="file" id="file" multiple hidden>
+    <textarea id="text" placeholder="Type or paste text or a link"></textarea>
+    <button class="btn" id="sendText" type="button">Send text</button>
+    <p class="status" id="sendStatus"></p>
+  </section>
+
+  <section class="card" id="progressCard" hidden>
+    <h2>In progress</h2>
+    <ul class="list" id="progress"></ul>
+  </section>
+
+  <section class="card">
+    <h2>Received</h2>
+    <ul class="list" id="received"></ul>
+    <p class="empty" id="noReceived">Files and text sent to this device show up here. They are kept only while this page is open, so save the ones you want.</p>
+  </section>
+
+  <footer>
+    <p><b>How it works.</b> Your devices connect straight to each other and everything is encrypted between them.
+      Files are never uploaded to a server. A public service is used only to help the two devices find each other;
+      the pairing code lets each device check it is really talking to the other.</p>
+    <p>Both devices need to be online and on the same network. LocalBeam is free and open source (MIT).</p>
+  </footer>
+</main>
+
+<script src="vendor/peerjs.min.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
